@@ -1,6 +1,11 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+import authRoutes from "./routes/authRoutes.js";
+import movieRoutes from "./routes/movieRoutes.js";
+import showtimeRoutes from "./routes/showtimeRoutes.js";
+import reservationRoutes from "./routes/reservationRoutes.js";
 
 dotenv.config();
 
@@ -12,6 +17,11 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "Backend çalışıyor." });
 });
+
+app.use("/api/auth", authRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/showtimes", showtimeRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 const PORT = process.env.PORT || 5000;
 
