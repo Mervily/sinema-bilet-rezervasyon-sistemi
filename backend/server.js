@@ -1,15 +1,15 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
-dotenv.config();
-console.log("SERVER TMDB_API_KEY:", process.env.TMDB_API_KEY);
 import movieRoutes from "./routes/movieRoutes.js";
 import showtimeRoutes from "./routes/showtimeRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import reservationRoutes from "./routes/reservationRoutes.js";
+import seatRoutes from "./routes/seatRoutes.js";
 
+dotenv.config();
 
+console.log("SERVER TMDB_API_KEY:", process.env.TMDB_API_KEY);
 
 const app = express();
 
@@ -24,6 +24,7 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/showtimes", showtimeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/seats", seatRoutes);
 
 const PORT = process.env.PORT || 5000;
 

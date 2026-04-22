@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
-import { getSeatsByShowtime } from "../../data/seats";
 import "./SeatSelection.css";
 
 const SeatSelection = () => {
@@ -13,12 +12,9 @@ const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [showtime, setShowtime] = useState(null);
   const [movie, setMovie] = useState(null);
+  const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
-  const seats = useMemo(() => {
-    return getSeatsByShowtime(Number(showtimeId));
-  }, [showtimeId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,10 +31,14 @@ const SeatSelection = () => {
         const movieRes = await axios.get(
           `http://localhost:5000/api/movies/${currentShowtime.movieId}`
         );
-
         setMovie(movieRes.data);
+
+        const seatsRes = await axios.get(
+          `http://localhost:5000/api/seats/${showtimeId}`
+        );
+        setSeats(seatsRes.data.seats);
       } catch (error) {
-        console.error("Seans veya film bilgisi alınamadı:", error);
+        console.error("Seans, film veya koltuk bilgisi alınamadı:", error);
       } finally {
         setLoading(false);
       }
@@ -58,6 +58,14 @@ const SeatSelection = () => {
       setSelectedSeats([...selectedSeats, seat.id]);
     }
   };
+
+  const groupedSeats = seats.reduce((acc, seat) => {
+    if (!acc[seat.row]) {
+      acc[seat.row] = [];
+    }
+    acc[seat.row].push(seat);
+    return acc;
+  }, {});
 
   const totalPrice = selectedSeats.length * (showtime?.price || 0);
 
@@ -80,6 +88,7 @@ const SeatSelection = () => {
         hall: showtime.hall,
         seats: selectedSeats,
         totalPrice,
+        showtimeId: Number(showtimeId),
       };
 
       const response = await axios.post(
@@ -137,22 +146,30 @@ const SeatSelection = () => {
         <div className="seat-selection__screen">PERDE</div>
 
         <div className="seat-selection__content">
-          <div className="seat-selection__grid">
-            {seats.map((seat) => {
-              const isSelected = selectedSeats.includes(seat.id);
+          <div className="seat-selection__layout">
+            {Object.entries(groupedSeats).map(([row, rowSeats]) => (
+              <div className="seat-selection__row" key={row}>
+                <div className="seat-selection__row-label">{row}</div>
 
-              return (
-                <button
-                  key={seat.id}
-                  className={`seat ${
-                    seat.isReserved ? "seat--reserved" : ""
-                  } ${isSelected ? "seat--selected" : ""}`}
-                  onClick={() => toggleSeat(seat)}
-                >
-                  {seat.id}
-                </button>
-              );
-            })}
+                <div className="seat-selection__row-seats">
+                  {rowSeats.map((seat) => {
+                    const isSelected = selectedSeats.includes(seat.id);
+
+                    return (
+                      <button
+                        key={seat.id}
+                        className={`seat ${
+                          seat.isReserved ? "seat--reserved" : ""
+                        } ${isSelected ? "seat--selected" : ""}`}
+                        onClick={() => toggleSeat(seat)}
+                      >
+                        {seat.id}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="booking-summary">
