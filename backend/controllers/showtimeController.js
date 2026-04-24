@@ -45,7 +45,9 @@ export const getShowtimeById = async (req, res) => {
         showtimes.format
       FROM showtimes
       JOIN movies ON movies.id = showtimes.movie_id
-      WHERE showtimes.id = $1
+      WHERE showtimes.movie_id = (
+      SELECT id FROM movies WHERE id = $1 OR tmdb_id = $1
+    )
       `,
       [id]
     );
